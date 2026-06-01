@@ -1,6 +1,6 @@
 from pathlib import Path
 from uci import UCIHandler
-from tests import debug_perft, debug_perft_suite
+from tests.perft_tests import debug_perft, debug_perft_suite
 
 import logging
 import argparse
