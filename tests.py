@@ -41,7 +41,7 @@ def _find_perft_mismatch(fen: str, depth: int, working_eng: UCIHandler, debug_en
         bad_moves = e_moves_set ^ d_moves_set
 
         if len(bad_moves) > 0:
-            return board.board_fen(), next(iter(bad_moves))
+            return board.fen(), next(iter(bad_moves))
         
         for move, nodes in exp_moves.items():
             if debug_moves[move] != nodes:
@@ -63,7 +63,7 @@ def debug_perft(fen: str, depth: int, working_eng: UCIHandler, debug_eng: UCIHan
         print("No issues found")
     else:
         fen, move = result
-        print(f"Found issue! {fen} - {move}")
+        print(f"Found issue! {fen}    - {move}")
 
 def debug_perft_suite(suite: Path, working_eng: UCIHandler, debug_eng: UCIHandler, stop_on_first_pos: bool = True) -> None:
     """
