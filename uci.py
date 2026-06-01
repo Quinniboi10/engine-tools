@@ -13,7 +13,7 @@ class UCIHandler:
 
         self.engine = subprocess.Popen(engine_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
 
-        self.use_bulk = True
+        self.use_bulk = use_bulk
 
         self.id = universal_id
         universal_id += 1
@@ -30,7 +30,7 @@ class UCIHandler:
         while (line := self.readline()) != "uciok":
             if line.startswith("id name "):
                 self.name = line[len("id name "):]
-            elif line.startswith("if author "):
+            elif line.startswith("id author "):
                 self.author = line[len("id author "):]
         
         assert self.name is not None, "Engine did not provide name"
@@ -108,7 +108,7 @@ class UCIHandler:
         self.isready()
         command = "go"
         if len(kargs) > 0:
-            command += " " + " ".join(f"{k} {v}" for k, v in kargs.values())
+            command += " " + " ".join(f"{k} {v}" for k, v in kargs.items())
         self.send(command)
         
     def stop(self) -> None:
@@ -147,11 +147,11 @@ class UCIHandler:
         while True:
             if (match:= re.fullmatch(r"[a-h][1-8][a-h][1-8]:\s*\d+", self.readline())) is not None:
                 line = match.group()
-                move, nps = line[:4], re.search(r"\d+", line[4:]).group() # pyright: ignore[reportOptionalMemberAccess] <- can be ignored because of fullmatch
+                move, nodes = line[:4], re.search(r"\d+", line[4:]).group() # pyright: ignore[reportOptionalMemberAccess] <- can be ignored because of fullmatch
 
                 assert move not in moves, "perft returned the same move more than once"
 
-                moves[move] = nps
+                moves[move] = nodes
             else:
                 break
         
