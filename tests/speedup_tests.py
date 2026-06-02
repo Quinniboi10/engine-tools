@@ -40,7 +40,7 @@ def _get_standard_error(values: list[float | int]) -> float:
 def _avg(values: list[int | float]) -> float:
     return sum(values) / len(values)
 
-def compare_speeds(dev_path: Path, base_path: Path, perft_depth: Optional[str] = None) -> None:
+def compare_speeds(dev_path: Path, base_path: Path, perft_depth: Optional[str] = None, use_bulk: bool = True) -> None:
     relative_speeds: list[float] = []
 
     # Yes, this could be one line, but this makes it more intuitive
@@ -58,8 +58,8 @@ def compare_speeds(dev_path: Path, base_path: Path, perft_depth: Optional[str] =
         while True:
             if perft_depth is not None:
                 # Reinit every time to clear things like a movegen TT
-                dev = UCIHandler(dev_path)
-                base = UCIHandler(base_path)
+                dev = UCIHandler(dev_path, use_bulk=use_bulk)
+                base = UCIHandler(base_path, use_bulk=use_bulk)
                 dev.ucinewgame()
                 base.ucinewgame()
                 dev.set_position(fen) # pyright: ignore[reportPossiblyUnboundVariable]

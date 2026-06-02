@@ -11,7 +11,7 @@ class UCIHandler:
     def __init__(self, engine_path: Path, use_bulk=True):
         global universal_id
 
-        self.engine = subprocess.Popen(engine_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+        self.engine = subprocess.Popen(engine_path.resolve(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
 
         self.use_bulk = use_bulk
 
@@ -145,9 +145,10 @@ class UCIHandler:
         moves = {}
 
         while True:
-            if (match:= re.fullmatch(r"[a-h][1-8][a-h][1-8]:\s*\d+", self.readline())) is not None:
-                line = match.group()
-                move, nodes = line[:4], re.search(r"\d+", line[4:]).group() # pyright: ignore[reportOptionalMemberAccess] <- can be ignored because of fullmatch
+            line = self.readline()
+            if (match:= re.fullmatch(r"[a-h][1-8][a-h][1-8]:\s*\d+", line)) is not None:
+                move_line = match.group()
+                move, nodes = move_line[:4], re.search(r"\d+", move_line[4:]).group() # pyright: ignore[reportOptionalMemberAccess] <- can be ignored because of fullmatch
 
                 assert move not in moves, "perft returned the same move more than once"
 
@@ -157,7 +158,6 @@ class UCIHandler:
         
         # Get the last line with the total node count + nps
         while True:
-            line = self.readline()
             if re.fullmatch(r"\d+ nodes \d+ nps", line) is not None:
                 tokens = line.split(" ")
                 if tokens[1] == "nodes":
@@ -165,5 +165,6 @@ class UCIHandler:
                 else:
                     nodes, nps = int(tokens[2]), int(tokens[0])
                 break
+            line = self.readline()
         
         return moves, nodes, nps

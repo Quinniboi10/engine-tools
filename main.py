@@ -46,9 +46,9 @@ def main():
     if args.speedup:
         compare_speeds(Path(args.engine), Path(args.reference_engine), None)
     if args.perft_speedup is not None:
-        compare_speeds(Path(args.engine), Path(args.reference_engine), args.perft_speedup)
+        compare_speeds(Path(args.engine), Path(args.reference_engine), args.perft_speedup, False)
     if args.bulk_speedup is not None:
-        compare_speeds(Path(args.engine), Path(args.reference_engine), args.bulk_speedup)
+        compare_speeds(Path(args.engine), Path(args.reference_engine), args.bulk_speedup, True)
 
 if __name__ == "__main__":
     main()
