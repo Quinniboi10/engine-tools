@@ -33,8 +33,8 @@ class UCIHandler:
             elif line.startswith("id author "):
                 self.author = line[len("id author "):]
         
-        assert self.name is not None, "Engine did not provide name"
-        assert self.author is not None, "Engine did not provide author"
+        assert self.name != "unknown", "Engine did not provide name"
+        assert self.author != "unknown", "Engine did not provide author"
 
         if self.engine.stdin is None:
             self.engine.kill()
@@ -46,8 +46,8 @@ class UCIHandler:
         self.searching = False
     
     def __del__(self):
-        self.stop()
-        self.quit()
+        if self.engine.poll() is None:
+            self.engine.kill()
     
     def send_and_await(self, command: str, expected: str) -> None:
         assert self.engine.stdout is not None
@@ -101,7 +101,6 @@ class UCIHandler:
         if len(moves) > 0:
             command += " " + " ".join(moves)
         self.send(command)
-        self.searching = True
         self.isready()
     
     def go(self, **kargs) -> None:
@@ -110,9 +109,10 @@ class UCIHandler:
         if len(kargs) > 0:
             command += " " + " ".join(f"{k} {v}" for k, v in kargs.items())
         self.send(command)
+        self.searching = True
         
     def stop(self) -> None:
-        if self.searching:
+        if hasattr(self, "searching") and self.searching:
             self.send("stop")
         self.searching = False
     

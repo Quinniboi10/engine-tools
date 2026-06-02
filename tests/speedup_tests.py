@@ -1,12 +1,16 @@
 from errors import EngineBenchmarkError
 
+from typing import Optional
 from pathlib import Path
 import subprocess
 import logging
 import math
+import enum
 import re
 
 import datetime
+
+from uci import UCIHandler
 
 def _run_bench(engine: Path) -> tuple[int, int]:
     """
@@ -36,7 +40,7 @@ def _get_standard_error(values: list[float | int]) -> float:
 def _avg(values: list[int | float]) -> float:
     return sum(values) / len(values)
 
-def compare_bench_speeds(dev_path: Path, base_path: Path) -> None:
+def compare_speeds(dev_path: Path, base_path: Path, perft_depth: Optional[str] = None) -> None:
     relative_speeds: list[float] = []
 
     # Yes, this could be one line, but this makes it more intuitive
@@ -46,10 +50,23 @@ def compare_bench_speeds(dev_path: Path, base_path: Path) -> None:
     avg_speedup = 1.0
     error = float("inf")
 
+    if perft_depth is not None:
+        fen, depth = perft_depth.rsplit(":", 1)
+        depth = int(depth)
+
     try:
         while True:
-            _, dev_nps = _run_bench(dev_path)
-            _, base_nps = _run_bench(base_path)
+            if perft_depth is not None:
+                # Reinit every time to clear things like a movegen TT
+                dev = UCIHandler(dev_path)
+                base = UCIHandler(base_path)
+                dev.ucinewgame()
+                base.ucinewgame()
+                dev.set_position(fen) # pyright: ignore[reportPossiblyUnboundVariable]
+                base.set_position(fen) # pyright: ignore[reportPossiblyUnboundVariable]
+                _, _, dev_nps, _, _, base_nps = *dev.perft(depth), *base.perft(depth) # pyright: ignore[reportPossiblyUnboundVariable]
+            else:
+                _, dev_nps, _, base_nps = *_run_bench(dev_path), *_run_bench(base_path)
 
             relative_speeds.append(dev_nps / base_nps)
 
