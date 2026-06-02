@@ -5,7 +5,6 @@ from pathlib import Path
 import subprocess
 import logging
 import math
-import enum
 import re
 
 import datetime

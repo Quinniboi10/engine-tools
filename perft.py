@@ -5,7 +5,7 @@ from pathlib import Path
 
 from uci import UCIHandler
 
-def _find_perft_mismatch(fen: str, depth: int, working_eng: UCIHandler, debug_eng: UCIHandler, expected_nodes: Optional[int] = None) -> Optional[tuple[str, str]]:
+def _find_perft_mismatch(fen: str, depth: int, debug_eng: UCIHandler, working_eng: UCIHandler, expected_nodes: Optional[int] = None) -> Optional[tuple[str, str]]:
     """
     Find the mismatch in perft numbers between 2 engines
 
@@ -53,11 +53,11 @@ def _find_perft_mismatch(fen: str, depth: int, working_eng: UCIHandler, debug_en
     
     return None
 
-def debug_perft(fen: str, depth: int, working_eng: UCIHandler, debug_eng: UCIHandler) -> None:
+def debug_perft(fen: str, depth: int, debug_eng: UCIHandler, working_eng: UCIHandler) -> None:
     """
     Debugs an individual FEN and finds a move that's behaving unexpectedly
     """
-    result = _find_perft_mismatch(fen, depth, working_eng, debug_eng)
+    result = _find_perft_mismatch(fen, depth, debug_eng, working_eng)
 
     if result is None:
         print("No issues found")
@@ -65,7 +65,7 @@ def debug_perft(fen: str, depth: int, working_eng: UCIHandler, debug_eng: UCIHan
         fen, move = result
         print(f"Found issue! {fen}    - {move}")
 
-def debug_perft_suite(suite: Path, working_eng: UCIHandler, debug_eng: UCIHandler, stop_on_first_pos: bool = True) -> None:
+def debug_perft_suite(suite: Path, debug_eng: UCIHandler, working_eng: UCIHandler, stop_on_first_pos: bool = True) -> None:
     """
     Parses a file containing perft positions
     See https://github.com/AndyGrant/Ethereal/blob/master/src/perft/standard.epd for an example
@@ -73,9 +73,6 @@ def debug_perft_suite(suite: Path, working_eng: UCIHandler, debug_eng: UCIHandle
     with open(suite) as f:
         for line in f:
             tokens = line.split(';')
-
-            # Eat the \n char
-            tokens[-1] = tokens[-1][:-1]
 
             fen = tokens.pop(0).strip()
 
@@ -86,9 +83,9 @@ def debug_perft_suite(suite: Path, working_eng: UCIHandler, debug_eng: UCIHandle
                 depth = int(depth[1:])
                 nodes = int(nodes)
 
-                result = _find_perft_mismatch(fen, depth, working_eng, debug_eng, nodes)
+                result = _find_perft_mismatch(fen, depth, debug_eng, working_eng, nodes)
 
                 if result is not None:
-                    debug_perft(fen, depth, working_eng, debug_eng)
+                    debug_perft(fen, depth, debug_eng, working_eng)
                     if stop_on_first_pos:
                         return

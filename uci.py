@@ -11,7 +11,7 @@ class UCIHandler:
     def __init__(self, engine_path: Path, use_bulk=True):
         global universal_id
 
-        self.engine = subprocess.Popen(engine_path.resolve(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+        self.engine = subprocess.Popen(engine_path.resolve(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
 
         self.use_bulk = use_bulk
 
@@ -71,16 +71,14 @@ class UCIHandler:
     def readline(self) -> str:
         assert self.engine.stdout is not None
 
-        line = self.engine.stdout.readline().strip()
+        line = self.engine.stdout.readline()
+        if line == "":
+            raise EngineCommunicationError(f"Engine '{self.name}' - ID {self.id} exited early")
+
+        line = line.strip()
         self.logger.debug(f"{self.name}[{self.id}] - ENG: {line}")
 
         return line
-    
-    def _raise_error(self, message) -> None:
-        self.stop()
-        self.quit()
-        self.engine.kill()
-        raise EngineCommunicationError(message)
     
     # UCI commands
     
@@ -99,7 +97,7 @@ class UCIHandler:
         self.isready()
         command = f"position fen {start_fen}"
         if len(moves) > 0:
-            command += " " + " ".join(moves)
+            command += " moves " + " ".join(moves)
         self.send(command)
         self.isready()
     
@@ -123,7 +121,7 @@ class UCIHandler:
 
     def eval(self) -> int:
         self.send("eval")
-        line = re.search(r"\d+", self.readline())
+        line = re.search(r"-?\d+", self.readline())
         if line is None:
             raise EngineCommunicationError("Non-UCI 'eval' command didn't return a number")
         return int(line.group())
@@ -146,9 +144,8 @@ class UCIHandler:
 
         while True:
             line = self.readline()
-            if (match:= re.fullmatch(r"[a-h][1-8][a-h][1-8]:\s*\d+", line)) is not None:
-                move_line = match.group()
-                move, nodes = move_line[:4], re.search(r"\d+", move_line[4:]).group() # pyright: ignore[reportOptionalMemberAccess] <- can be ignored because of fullmatch
+            if (match:= re.fullmatch(r"([a-h][1-8][a-h][1-8][nrbq]?):\s*(\d+)", line)) is not None:
+                move, nodes = match.group(1), match.group(2)
 
                 assert move not in moves, "perft returned the same move more than once"
 
@@ -160,10 +157,7 @@ class UCIHandler:
         while True:
             if re.fullmatch(r"\d+ nodes \d+ nps", line) is not None:
                 tokens = line.split(" ")
-                if tokens[1] == "nodes":
-                    nodes, nps = int(tokens[0]), int(tokens[2])
-                else:
-                    nodes, nps = int(tokens[2]), int(tokens[0])
+                nodes, nps = int(tokens[0]), int(tokens[2])
                 break
             line = self.readline()
         
