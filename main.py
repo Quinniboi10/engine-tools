@@ -1,13 +1,8 @@
-from pathlib import Path
-from uci import UCIHandler
-from tests.perft_tests import debug_perft, debug_perft_suite
-from tests.speedup_tests import compare_bench_speeds
-
-import logging
 import argparse
 
 version_string = f"Engine Tools 0.0.1"
 
+# Parse args early so '--help' works even without dependencies 
 parser = argparse.ArgumentParser(
                     prog=version_string,
                     description="Various Python tools to make engine debugging easier")
@@ -23,6 +18,14 @@ parser.add_argument("--perft-suite", help="Path to an standard .epd file")
 parser.add_argument("--speedup", help="Compare the bench speed between the engines", action="store_true")
 
 args = parser.parse_args()
+
+
+from pathlib import Path
+from uci import UCIHandler
+from tests.perft_tests import debug_perft, debug_perft_suite
+from tests.speedup_tests import compare_bench_speeds
+
+import logging
 
 def load_engines() -> tuple[UCIHandler, UCIHandler]:
     engine = UCIHandler(Path(args.engine), use_bulk=not args.no_bulk)

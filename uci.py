@@ -151,7 +151,7 @@ class UCIHandler:
 
                 assert move not in moves, "perft returned the same move more than once"
 
-                moves[move] = nodes
+                moves[move] = int(nodes)
             else:
                 break
         

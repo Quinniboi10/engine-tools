@@ -58,7 +58,7 @@ def compare_bench_speeds(dev_path: Path, base_path: Path) -> None:
 
             logging.info(f"run {len(relative_speeds)} finished - relative speed of {relative_speeds[-1]}")
 
-            print(f"{datetime.datetime.now().strftime("%H:%M:%S")} - run {len(relative_speeds)} > ", end="")
+            print(f"{datetime.datetime.now().strftime('%H:%M:%S')} - run {len(relative_speeds)} > ", end="")
             if abs(1 - avg_speedup) < error:
                 print("Uncertainty too high to draw meaningful conclusions     ", end="\r")
             else:
