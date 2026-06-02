@@ -1,7 +1,7 @@
-## Engine Tools
-This repository aims to make chess engines easier to debug
+# Engine Tools
+> This repository aims to make chess engines easier to debug
 
-### Requirements
+## Requirements
 For dependencies, see [requirements.txt](requirements.txt).
 
 It is expected that all engines support the basic UCI spec, plus several non-standard commands as documented below.
@@ -20,8 +20,16 @@ $ ./Engine bench
 <nodes> nodes <nps> nps
 ```
 
-### Usage
+## Usage
 When running tests, this harness uses 2 engines (both supporting the above spec), and compares their results. For CLI syntax, run `python3 main.py --help` for more information.
 
-### Notes
+### Example
+```bash
+python3 main.py \
+  --engine ./Lazarus-dev \
+  --reference-engine ./Lazarus-main \
+  --perft-pos "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1:5"
+```
+
+## Notes
 Using the `bench` speedup test, the output format is `speed ± standard error`
