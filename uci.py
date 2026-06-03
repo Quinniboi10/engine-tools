@@ -8,10 +8,10 @@ from errors import EngineCommunicationError
 universal_id: int = 0
 
 class UCIHandler:
-    def __init__(self, engine_path: Path, use_bulk=True):
+    def __init__(self, engine_path: Path, *args: str|Path, use_bulk=True):
         global universal_id
 
-        self.engine = subprocess.Popen(engine_path.resolve(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
+        self.engine = subprocess.Popen((engine_path.resolve(), *args), stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
 
         self.use_bulk = use_bulk
 
@@ -89,25 +89,29 @@ class UCIHandler:
     def isready(self) -> None:
         self.send_and_await("isready", "readyok")
     
-    def set_option(self, name: str, value: str) -> None:
-        self.send(f"setoption name {name} value {value}")
+    def set_option(self, name: str, value: object) -> str:
+        command = f"setoption name {name} value {value}"
+        self.send(command)
         self.isready()
+        return command
     
-    def set_position(self, start_fen: str, *moves: str) -> None:
+    def set_position(self, start_fen: str, *moves: str) -> str:
         self.isready()
         command = f"position fen {start_fen}"
         if len(moves) > 0:
             command += " moves " + " ".join(moves)
         self.send(command)
         self.isready()
+        return command
     
-    def go(self, **kargs) -> None:
+    def go(self, **kargs) -> str:
         self.isready()
         command = "go"
         if len(kargs) > 0:
             command += " " + " ".join(f"{k} {v}" for k, v in kargs.items())
         self.send(command)
         self.searching = True
+        return command
         
     def stop(self) -> None:
         if hasattr(self, "searching") and self.searching:
