@@ -2,6 +2,7 @@ import chess
 from typing import Optional
 import logging
 from pathlib import Path
+from tqdm import tqdm;
 
 from uci import UCIHandler
 
@@ -70,8 +71,12 @@ def debug_perft_suite(suite: Path, debug_eng: UCIHandler, working_eng: UCIHandle
     Parses a file containing perft positions
     See https://github.com/AndyGrant/Ethereal/blob/master/src/perft/standard.epd for an example
     """
-    with open(suite) as f:
-        for line in f:
+
+    num_lines = sum(1 for _ in open(suite.resolve()))
+
+    has_issues = False
+    with open(suite.resolve()) as f:
+        for line in tqdm(f, total=num_lines):
             tokens = line.split(';')
 
             fen = tokens.pop(0).strip()
@@ -86,6 +91,10 @@ def debug_perft_suite(suite: Path, debug_eng: UCIHandler, working_eng: UCIHandle
                 result = _find_perft_mismatch(fen, depth, debug_eng, working_eng, nodes)
 
                 if result is not None:
+                    has_issues = True
                     debug_perft(fen, depth, debug_eng, working_eng)
                     if stop_on_first_pos:
                         return
+    
+    if not has_issues:
+        print("No issues found")

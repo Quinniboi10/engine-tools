@@ -19,7 +19,7 @@ def _run_bench(engine: Path) -> tuple[int, int]:
         nodes, nps
     """
     try:
-        result = subprocess.run([engine, "bench"], capture_output=True, text=True, check=True)
+        result = subprocess.run([engine.resolve(), "bench"], capture_output=True, text=True, check=True)
     except subprocess.CalledProcessError as e:
         raise EngineBenchmarkError(f"'{e.cmd}' returned non-zero exit code of {e.returncode}")
     
