@@ -6,7 +6,7 @@ from tqdm import tqdm;
 
 from uci import UCIHandler
 
-def _find_perft_mismatch(fen: str, depth: int, debug_eng: UCIHandler, working_eng: UCIHandler, expected_nodes: Optional[int] = None) -> Optional[tuple[str, str]]:
+def _find_perft_mismatch(fen: str, depth: int, debug_eng: UCIHandler, working_eng: UCIHandler, expected_nodes: Optional[int] = None) -> Optional[tuple[str, str, str]]:
     """
     Find the mismatch in perft numbers between 2 engines
 
@@ -23,11 +23,12 @@ def _find_perft_mismatch(fen: str, depth: int, debug_eng: UCIHandler, working_en
     working_eng.ucinewgame()
     debug_eng.ucinewgame()
 
-    board = chess.Board(fen)
+    board = chess.Board(fen);
+    moves = []
 
     while depth > 0:
-        working_eng.set_position(board.fen())
-        debug_eng.set_position(board.fen())
+        working_eng.set_position(fen, *moves)
+        debug_eng.set_position(fen, *moves)
         
         debug_moves, total_nodes, _ = debug_eng.perft(depth)
 
@@ -42,11 +43,12 @@ def _find_perft_mismatch(fen: str, depth: int, debug_eng: UCIHandler, working_en
         bad_moves = e_moves_set ^ d_moves_set
 
         if len(bad_moves) > 0:
-            return board.fen(), next(iter(bad_moves))
+            return board.fen(), f"{fen} moves {" ".join(moves)}", next(iter(bad_moves))
         
         for move, nodes in exp_moves.items():
             if debug_moves[move] != nodes:
                 logging.info(f"Found bad move at depth {depth}: {move}")
+                moves.append(move)
                 board.push_uci(move)
                 break
 
@@ -63,8 +65,11 @@ def debug_perft(fen: str, depth: int, debug_eng: UCIHandler, working_eng: UCIHan
     if result is None:
         print("No issues found")
     else:
-        fen, move = result
-        print(f"Found issue! {fen}    - {move}")
+        fen, trace, move = result
+        print("Found issue!")
+        print(f"FEN:          {fen}")
+        print(f"Flagged move: {move}")
+        print(f"Pos trace:    {trace}")
 
 def debug_perft_suite(suite: Path, debug_eng: UCIHandler, working_eng: UCIHandler, stop_on_first_pos: bool = True) -> None:
     """
